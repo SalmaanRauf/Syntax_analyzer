@@ -1,0 +1,14 @@
+$$
+function add(a integer, b integer) {
+  return a + b;
+}
+function hi() {
+  return 5;
+}
+$$
+integer x, y, result;
+$$
+scan(x, y);
+result = add(x, y);
+print(result);
+$$
