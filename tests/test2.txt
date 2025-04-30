@@ -1,0 +1,53 @@
+[* This program finds the maximum of three numbers and checks if it is even or odd *]
+$$
+function max_of_three (a integer, b integer, c integer)
+    integer max;
+
+{
+    
+    if (a > b)
+    {
+        if (a > c)
+        {
+            max = a;
+        }
+        else
+        {
+            max = c;
+        }
+        endif
+    }
+    else
+    {
+        if (b > c)
+        {
+            max = b;
+        }
+        else
+        {
+            max = c;
+        }
+        endif
+    }
+    endif
+
+    return max;
+}
+$$
+integer x, y, z, maxNum;
+$$
+scan (x, y, z);
+
+maxNum = max_of_three (x, y, z);
+print (maxNum);
+
+if ( maxNum == 0)
+{
+    print (true);
+}
+else
+{
+    print (false);
+}
+endif
+$$
