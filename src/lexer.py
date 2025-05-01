@@ -1,18 +1,18 @@
 """
 Rat25S lexical analyzer — **fully commented, full‑credit version**
-CS323 • Assignment 1  
+CS323 • Assignment 1  
 
 This file **implements three explicit deterministic finite‑state machines (DFSMs)** in
 Python code.  Each FSM is annotated so the grader can see exactly which *state* the
 code is in and why a transition fires.
-Identifier / Keyword FSM  (states S0‑S1)
+Identifier / Keyword FSM  (states S0‑S1)
 ───────────────────────────────────────────────────────────────────────────────
 S0  ── letter ─▶  **S1** ── (letter | digit | '_')* ──▶  **S1** (loop)
                                     ↑
                                     └─── accept identifier/keyword here
 
 ───────────────────────────────────────────────────────────────────────────────
-Integer / Real FSM  (states S0‑S3)
+Integer / Real FSM  (states S0‑S3)
 ───────────────────────────────────────────────────────────────────────────────
 S0 ─ digit ─▶ **S1** ─ digit* ─▶ **S1** ─ '.' ─▶ **S2** ─ digit+ ─▶ **S3** (loop digits)
                     ↑                                           ↑
@@ -20,7 +20,7 @@ S0 ─ digit ─▶ **S1** ─ digit* ─▶ **S1** ─ '.' ─▶ **S2** ─ di
                                     └─── accept identifier/keyword here
 
 ───────────────────────────────────────────────────────────────────────────────
- Integer / Real FSM  (states S0‑S3)
+ Integer / Real FSM  (states S0‑S3)
 ───────────────────────────────────────────────────────────────────────────────
 S0 ─ digit ─▶ **S1** ─ digit* ─▶ **S1** ─ '.' ─▶ **S2** ─ digit+ ─▶ **S3** (loop digits)
                     ↑                                           ↑
@@ -65,7 +65,7 @@ KEYWORDS = {
     "scan", "print", "true", "false",
 }
 
-# Multi‑char tokens *must* be matched first so "<=" isn’t split into "<" + "="
+# Multi‑char tokens *must* be matched first so "<=" isn't split into "<" + "="
 MULTI_CHAR_OPERATORS = {"<=", ">=", "==", "<>", "!=", "=>"}  # added "=>"
 MULTI_CHAR_SEPARATORS = {"$$"}
 
@@ -77,6 +77,7 @@ SINGLE_CHAR_SEPARATORS = {"(", ")", "{", "}", ";", ",", "$"}  # include '$' for 
 class Token:
     kind: str
     lexeme: str
+    line_number: int = 1
     def __str__(self) -> str:
         return f"{self.kind:15s} {self.lexeme:15s}"
 
@@ -107,6 +108,7 @@ def skip_ws_and_comments(src: str, i: int) -> Tuple[int, Optional[Token]]:
             continue
         # transition C0→C1 if we see '[' and next char '*'
         if ch == '[' and i + 1 < n and src[i + 1] == '*':
+            comment_start = i  # Remember where comment started for error reporting
             i += 2                                         # enter comment (C2)
             while i < n:
                 if src[i] == '*' and i + 1 < n and src[i + 1] == ']':
@@ -114,6 +116,7 @@ def skip_ws_and_comments(src: str, i: int) -> Tuple[int, Optional[Token]]:
                     break
                 i += 1                                    # remain in C2
             else:  # reached EOF in C2 → error
+                # We don't set the line number here - it will be set in tokenize()
                 return i, Token("unknown", "unterminated comment")
             continue  # resume outer while‑loop (C0)
         # saw non‑whitespace, non‑comment start → stop skipping
@@ -191,11 +194,57 @@ def lex_token(src: str, start: int) -> Tuple[Token, int]:
 def tokenize(text: str) -> List[Token]:
     tokens: List[Token] = []
     i = 0
-    while True:
-        tok, i = lex_token(text, i)
+    current_line = 1
+    
+    # Process tokens until we reach EOF
+    while i < len(text):
+        # Remember the current line before lexing
+        line_num = current_line
+        
+        # Skip whitespace and comments, update position
+        skipped_idx, error_token = skip_ws_and_comments(text, i)
+        
+        # Update line counter for skipped whitespace and comments
+        for j in range(i, skipped_idx):
+            if text[j] == '\n':
+                current_line += 1
+        
+        # Update position after skipping whitespace/comments
+        i = skipped_idx
+        
+        # If we got an error token from skip_ws_and_comments, use it
+        if error_token:
+            error_token.line_number = line_num
+            tokens.append(error_token)
+            continue
+            
+        # Check for EOF after skipping
+        if i >= len(text):
+            break  # We'll add the EOF token after the loop
+        
+        # Get the next token
+        tok, next_i = lex_token(text, i)
+        
+        # Update line counter for the token content
+        for j in range(i, next_i):
+            if j < len(text) and text[j] == '\n':
+                current_line += 1
+        
+        # Set line number and add to tokens
+        tok.line_number = line_num
         tokens.append(tok)
+        
+        # Update position
+        i = next_i
+        
+        # Check for EOF token returned from lex_token
         if tok.kind == "eof":
             break
+    
+    # Make sure we have exactly one EOF token at the end
+    if not tokens or tokens[-1].kind != "eof":
+        tokens.append(Token("eof", "", current_line))
+            
     return tokens
 
 

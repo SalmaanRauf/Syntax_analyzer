@@ -9,6 +9,7 @@ OUTFILE = None
 
 tokens: List[lexer.Token] = []
 pos: int = 0
+error_count: int = 0  # Track the total number of errors found
 
 def current() -> lexer.Token:
     return tokens[pos]
@@ -28,23 +29,29 @@ def expect(kind: str, lexeme: Optional[str] = None) -> None:
     tok = current()
     if tok.kind != kind or (lexeme is not None and tok.lexeme != lexeme):
         error(f"expected {kind}{' ' + lexeme if lexeme else ''}")
-    advance()
+        # error() now calls advance(), so we don't need to do it again here
+    else:
+        # Only advance if the token matched
+        advance()
 
 def error(msg: str) -> None:
+    global error_count
     tok = current()
-    print(f"Syntax error at token '{tok.lexeme}' ({tok.kind}) — {msg}", file=sys.stderr)
-    sys.exit(1)
+    print(f"Syntax error on line {tok.line_number} at token '{tok.lexeme}' ({tok.kind}) — {msg}", file=sys.stderr)
+    error_count += 1  # Increment the error count
+    # Don't exit, so parsing can continue
+    advance()  # Skip the problematic token to allow parsing to continue
 
 def prod(rule: str) -> None:
     if TRACE and OUTFILE:
-        OUTFILE.write(f"    {rule}\n")
+        OUTFILE.write(f"\t{rule}\n")
 
 # Grammar procedures (after factoring) 
 
 # R1  <Rat25S> ::= $$ <Opt Function Definitions> $$ <Opt Declaration List> $$ <Statement List> $$
 def Rat25S() -> None:
-    prod("<Rat25S> -> $$ <OptFunctionDefinitions> $$ <OptDeclarationList> $$ <StatementList> $$")
     expect("separator", "$$")
+    prod("<Rat25S> -> $$ <OptFunctionDefinitions> $$ <OptDeclarationList> $$ <StatementList> $$")
     OptFunctionDefinitions()
     expect("separator", "$$")
     OptDeclarationList()
@@ -332,14 +339,18 @@ def Primary() -> None:
 
 # Driver entry point
 def parse(src_text: str, outfile_name: str = "sa_output.txt") -> None:
-    global tokens, pos, OUTFILE
+    global tokens, pos, OUTFILE, error_count
     tokens = lexer.tokenize(src_text)
     pos = 0
+    error_count = 0  # Reset error count
     with open(outfile_name, "w") as OUTFILE:
         OUTFILE.write(f"{'Token':15s} {'Lexeme':15s}\n")
         OUTFILE.write("-"*35 + "\n")
         Rat25S()
-    print(f"Parsing completed – output in {outfile_name}")
+    if error_count > 0:
+        print(f"Parsing completed with {error_count} errors – output in {outfile_name}")
+    else:
+        print(f"Parsing completed successfully – output in {outfile_name}")
 
 # Stand‑alone CLI
 if __name__ == "__main__":
