@@ -12,6 +12,13 @@ pos: int = 0
 error_count: int = 0  # Track the total number of errors found
 
 def current() -> lexer.Token:
+    global pos
+    # Make sure pos is within valid range
+    if pos >= len(tokens):
+        # If we've consumed all real tokens, return a dummy EOF token
+        # with the line number from the last real token
+        last_line = tokens[-1].line_number if tokens else 1
+        return lexer.Token("eof", "", last_line)
     return tokens[pos]
 
 def advance() -> None:
@@ -20,9 +27,15 @@ def advance() -> None:
     the expected grammar symbol.
     """
     global pos
+    # Return early if we're already at EOF to prevent multiple EOF prints
+    if current().kind == "eof":
+        pos += 1
+        return
+        
     # print token / lexeme BEFORE advancing, per spec
     if OUTFILE:
-        OUTFILE.write(f"Token: {current().kind:15s} Lexeme: {current().lexeme}\n")
+        curr_token = current()
+        OUTFILE.write(f"Token: {curr_token.kind:15s} Lexeme: {curr_token.lexeme:15s} Line: {curr_token.line_number}\n")
     pos += 1
 
 def expect(kind: str, lexeme: Optional[str] = None) -> None:
@@ -37,14 +50,21 @@ def expect(kind: str, lexeme: Optional[str] = None) -> None:
 def error(msg: str) -> None:
     global error_count
     tok = current()
-    print(f"Syntax error on line {tok.line_number} at token '{tok.lexeme}' ({tok.kind}) — {msg}", file=sys.stderr)
+    # Output to stderr with the [syntax-error] prefix
+    print(f"[syntax-error] line {tok.line_number}: at token '{tok.lexeme}' ({tok.kind}) — {msg}", file=sys.stderr)
+    
+    # Also write to the OUTFILE if tracing is enabled
+    if TRACE and OUTFILE:
+        OUTFILE.write(f"[syntax-error] line {tok.line_number}: at token '{tok.lexeme}' ({tok.kind}) — {msg}\n")
+    
     error_count += 1  # Increment the error count
     # Don't exit, so parsing can continue
     advance()  # Skip the problematic token to allow parsing to continue
 
 def prod(rule: str) -> None:
     if TRACE and OUTFILE:
-        OUTFILE.write(f"\t{rule}\n")
+        line_num = current().line_number
+        OUTFILE.write(f"\tline {line_num}: {rule}\n")
 
 # Grammar procedures (after factoring) 
 

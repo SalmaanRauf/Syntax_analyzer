@@ -1,0 +1,71 @@
+Token           Lexeme         
+-----------------------------------
+Token: separator       Lexeme: $$
+	<Rat25S> -> $$ <OptFunctionDefinitions> $$ <OptDeclarationList> $$ <StatementList> $$
+	<OptFunctionDefinitions> -> epsilon
+Token: keyword         Lexeme: integer
+	<OptDeclarationList> -> epsilon
+Token: identifier      Lexeme: a
+	<StatementList> -> <Statement> [<StatementList>]
+Token: separator       Lexeme: ,
+	<Statement> -> <Assign>
+	<Assign> -> id = <Expression> ;
+Token: identifier      Lexeme: b
+Token: operator        Lexeme: /
+	<Expression> -> <Term> <ExpressionPrime>
+	<Term> -> <Factor> <TermPrime>
+	<Factor> -> <Primary>
+Token: operator        Lexeme: /
+	<TermPrime> -> epsilon
+	<ExpressionPrime> -> epsilon
+Token: unknown         Lexeme: ←
+	<Statement> -> <Assign>
+	<Assign> -> id = <Expression> ;
+Token: identifier      Lexeme: missing
+Token: unknown         Lexeme: ‘
+	<Expression> -> <Term> <ExpressionPrime>
+	<Term> -> <Factor> <TermPrime>
+	<Factor> -> <Primary>
+Token: separator       Lexeme: ;
+	<TermPrime> -> epsilon
+	<ExpressionPrime> -> epsilon
+Token: unknown         Lexeme: ’
+	<Statement> -> <Assign>
+	<Assign> -> id = <Expression> ;
+Token: identifier      Lexeme: a
+Token: operator        Lexeme: =
+	<Expression> -> <Term> <ExpressionPrime>
+	<Term> -> <Factor> <TermPrime>
+	<Factor> -> <Primary>
+	<Primary> -> integer|real
+Token: integer         Lexeme: 1
+	<TermPrime> -> epsilon
+	<ExpressionPrime> -> epsilon
+Token: separator       Lexeme: ;
+	<Statement> -> <Assign>
+	<Assign> -> id = <Expression> ;
+Token: identifier      Lexeme: b
+Token: operator        Lexeme: =
+	<Expression> -> <Term> <ExpressionPrime>
+	<Term> -> <Factor> <TermPrime>
+	<Factor> -> <Primary>
+	<Primary> -> integer|real
+Token: integer         Lexeme: 2
+	<TermPrime> -> epsilon
+	<ExpressionPrime> -> epsilon
+Token: separator       Lexeme: ;
+	<Statement> -> <Print>
+	<Print> -> print ( <Expression> ) ;
+Token: keyword         Lexeme: print
+Token: separator       Lexeme: (
+	<Expression> -> <Term> <ExpressionPrime>
+	<Term> -> <Factor> <TermPrime>
+	<Factor> -> <Primary>
+	<Primary> -> id
+Token: identifier      Lexeme: a
+	<TermPrime> -> epsilon
+	<ExpressionPrime> -> epsilon
+Token: separator       Lexeme: )
+Token: separator       Lexeme: ;
+Token: separator       Lexeme: $$
+Token: separator       Lexeme: $$

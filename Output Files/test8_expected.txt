@@ -1,0 +1,42 @@
+Token           Lexeme         
+-----------------------------------
+Token: separator       Lexeme: $$
+	<Rat25S> -> $$ <OptFunctionDefinitions> $$ <OptDeclarationList> $$ <StatementList> $$
+	<OptFunctionDefinitions> -> epsilon
+Token: keyword         Lexeme: integer
+	<OptDeclarationList> -> epsilon
+Token: unknown         Lexeme: @
+	<StatementList> -> <Statement> [<StatementList>]
+	<Statement> -> <Assign>
+	<Assign> -> id = <Expression> ;
+Token: identifier      Lexeme: bad
+Token: operator        Lexeme: /
+	<Expression> -> <Term> <ExpressionPrime>
+	<Term> -> <Factor> <TermPrime>
+	<Factor> -> <Primary>
+Token: operator        Lexeme: /
+	<TermPrime> -> epsilon
+	<ExpressionPrime> -> epsilon
+Token: unknown         Lexeme: ‘@
+	<Statement> -> <Assign>
+	<Assign> -> id = <Expression> ;
+Token: identifier      Lexeme: is
+Token: identifier      Lexeme: not
+	<Expression> -> <Term> <ExpressionPrime>
+	<Term> -> <Factor> <TermPrime>
+	<Factor> -> <Primary>
+	<Primary> -> id
+Token: identifier      Lexeme: in
+	<TermPrime> -> epsilon
+	<ExpressionPrime> -> epsilon
+Token: identifier      Lexeme: the
+	<Statement> -> <Assign>
+	<Assign> -> id = <Expression> ;
+Token: identifier      Lexeme: language
+Token: separator       Lexeme: $$
+Token: separator       Lexeme: $$
+	<TermPrime> -> epsilon
+	<ExpressionPrime> -> epsilon
+Token: eof             Lexeme: 
+Token: eof             Lexeme: 
+Token: eof             Lexeme: 

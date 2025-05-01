@@ -1,0 +1,4 @@
+$$
+integer @bad          // ‘@’ is not in the language
+$$
+$$
