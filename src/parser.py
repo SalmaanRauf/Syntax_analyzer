@@ -155,6 +155,10 @@ def StatementList() -> None:
         "if","while","return","scan","print"}}
     while True:
         tok = current()
+        # Explicitly check for '}' which terminates a statement list in a compound statement
+        if tok.kind == "separator" and tok.lexeme == "}":
+            break
+        # Standard statement starters
         if tok.kind == "separator" and tok.lexeme == "{":
             Statement()
         elif tok.kind == "identifier":
@@ -162,6 +166,7 @@ def StatementList() -> None:
         elif tok.kind == "keyword" and tok.lexeme in starters["keyword"]:
             Statement()
         else:
+            # Other tokens are not statement starters
             break
 
 def Statement() -> None:
