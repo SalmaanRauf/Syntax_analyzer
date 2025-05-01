@@ -1,0 +1,11 @@
+$$
+$$
+integer a, b;
+$$
+a = b;
+if (a => b)
+{
+    a = a + 1;
+}
+endif
+$$

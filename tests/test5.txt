@@ -1,0 +1,21 @@
+[* This program calculates the sum of numbers from 1 to N *]
+$$
+function sum_n (n integer)
+{
+    return n * (n + 1) / 2;
+}
+$$
+integer num; [* Variable declaration *]
+$$
+scan (num);
+
+if (num > 0)
+{
+    print (sum_n (num));
+}
+else
+{
+    print (0);
+}
+endif
+$$
