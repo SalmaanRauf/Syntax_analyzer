@@ -1,29 +1,14 @@
-
-"""
-Rat25S Syntax Analyzer (Assignment 2) — *reference solution*
-
-Implements a predictive recursive‑descent parser that meets **all** constraints
-stated in “Assignment2.doc” and “Compiler Project.doc”, without adding any
-extra language features.
-
-Author: Reference TA Solution
-"""
-
 from __future__ import annotations
 from typing import List, Optional
 import sys
-import lexer   # reuse Assignment‑1 lexer exactly as provided
+import lexer
 
-# ─────────────────────────── Global trace switch ─────────────────────────── #
-TRACE: bool = True     # set False to silence rule printouts
+TRACE: bool = True
+OUTFILE = None
 
-# output stream
-OUTFILE = None  # will be opened by driver
 
-# ─────────────────────────── Token navigation helpers ────────────────────── #
-
-tokens: List[lexer.Token] = []   # filled by driver
-pos: int = 0                     # current look‑ahead index
+tokens: List[lexer.Token] = []
+pos: int = 0
 
 def current() -> lexer.Token:
     return tokens[pos]
@@ -54,7 +39,7 @@ def prod(rule: str) -> None:
     if TRACE and OUTFILE:
         OUTFILE.write(f"    {rule}\n")
 
-# ───────────────────────── Grammar procedures (after factoring) ──────────── #
+# Grammar procedures (after factoring) 
 
 # R1  <Rat25S> ::= $$ <Opt Function Definitions> $$ <Opt Declaration List> $$ <Statement List> $$
 def Rat25S() -> None:
@@ -345,8 +330,7 @@ def Primary() -> None:
     else:
         error("invalid primary")
 
-# ───────────────────────── Driver entry point ───────────────────────────── #
-
+# Driver entry point
 def parse(src_text: str, outfile_name: str = "sa_output.txt") -> None:
     global tokens, pos, OUTFILE
     tokens = lexer.tokenize(src_text)
