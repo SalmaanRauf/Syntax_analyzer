@@ -103,9 +103,8 @@ def OptFunctionDefinitions() -> None:
 def FunctionDefinitions() -> None:
     prod("<FunctionDefinitions> -> <Function> <FunctionDefinitionsPrime>")
     Function()
-    if current().lexeme == "function":
-        FunctionDefinitionsPrime()
-    
+    FunctionDefinitionsPrime()
+
 def FunctionDefinitionsPrime() -> None:
     if current().lexeme == "function":
         prod("<FunctionDefinitionsPrime> -> <FunctionDefinitions>")
@@ -135,9 +134,8 @@ def OptParameterList() -> None:
 def ParameterList() -> None:
     prod("<ParameterList> -> <Parameter> <ParameterListPrime>")
     Parameter()
-    if current().lexeme == ",":
-        ParameterListPrime()
-    
+    ParameterListPrime()
+
 def ParameterListPrime() -> None:
     if current().lexeme == ",":
         prod("<ParameterListPrime> -> , <Parameter> <ParameterListPrime>")
@@ -179,8 +177,7 @@ def DeclarationList() -> None:
     prod("<DeclarationList> -> <Declaration> ; <DeclarationListPrime>")
     Declaration()
     expect("separator", ";")
-    if current().lexeme in {"integer", "boolean", "real"}:
-        DeclarationListPrime()
+    DeclarationListPrime()
         
 def DeclarationListPrime() -> None:
     if current().lexeme in {"integer", "boolean", "real"}:
@@ -197,9 +194,8 @@ def Declaration() -> None:
 def IDs() -> None:
     prod("<IDs> -> IDENTIFIER <IDsPrime>")
     expect("identifier")
-    if current().lexeme == ",":
-        IDsPrime()
-        
+    IDsPrime()
+
 def IDsPrime() -> None:
     if current().lexeme == ",":
         prod("<IDsPrime> -> , IDENTIFIER <IDsPrime>")
@@ -222,7 +218,9 @@ def StatementList() -> None:
         
     prod("<StatementList> -> <Statement> <StatementListPrime>")
     Statement()
-    
+    StatementListPrime()
+
+def StatementListPrime() -> None:
     # Check for more statements
     starters = {"separator": "{", "identifier": None, "keyword": {
         "if","while","return","scan","print"}}
@@ -238,8 +236,9 @@ def StatementList() -> None:
     if ((tok.kind == "separator" and tok.lexeme == "{") or
         tok.kind == "identifier" or
         (tok.kind == "keyword" and tok.lexeme in starters["keyword"])):
-        prod("<StatementListPrime> -> <StatementList>")
-        StatementList()
+        prod("<StatementListPrime> -> <Statement> <StatementListPrime>")
+        Statement()
+        StatementListPrime()
 
 def Statement() -> None:
     tok = current()
@@ -293,17 +292,18 @@ def If() -> None:
     Condition()
     expect("separator", ")")
     Statement()
-    if current().lexeme == "else":
-        IfPrime()
-    else:
-        prod("<IfPrime> -> endif")
-        expect("keyword", "endif")
+    IfPrime()
         
 def IfPrime() -> None:
-    prod("<IfPrime> -> else <Statement> endif")
-    expect("keyword", "else")
-    Statement()
-    expect("keyword", "endif")
+    if current().lexeme == "else":
+        prod("<IfPrime> -> else <Statement> endif")
+        expect("keyword", "else")
+        Statement()
+        expect("keyword", "endif")
+    else:
+        # Handle the one-arm form
+        prod("<IfPrime> -> endif")
+        expect("keyword", "endif")
 
 # R19
 def Return() -> None:
