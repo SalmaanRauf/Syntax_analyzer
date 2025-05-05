@@ -24,6 +24,7 @@ Token: identifier      Lexeme: b               Line: 2
 	line 2: <IDsPrime> -> ε
 	line 2: <Qualifier> -> integer | boolean | real
 Token: keyword         Lexeme: integer         Line: 2
+	line 2: <ParameterListPrime> -> ε
 Token: separator       Lexeme: )               Line: 2
 	line 2: <OptDeclarationList> -> ε
 	line 2: <Body> -> { <StatementList> }

@@ -141,8 +141,7 @@ def ParameterListPrime() -> None:
         prod("<ParameterListPrime> -> , <Parameter> <ParameterListPrime>")
         expect("separator", ",")
         Parameter()
-        if current().lexeme == ",":
-            ParameterListPrime()
+        ParameterListPrime()  # Always call recursively after processing a parameter
     else:
         prod("<ParameterListPrime> -> ε")
 

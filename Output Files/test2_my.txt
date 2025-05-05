@@ -32,6 +32,7 @@ Token: identifier      Lexeme: c               Line: 3
 	line 3: <IDsPrime> -> ε
 	line 3: <Qualifier> -> integer | boolean | real
 Token: keyword         Lexeme: integer         Line: 3
+	line 3: <ParameterListPrime> -> ε
 Token: separator       Lexeme: )               Line: 3
 	line 3: <OptDeclarationList> -> <DeclarationList>
 	line 3: <DeclarationList> -> <Declaration> ; <DeclarationListPrime>
