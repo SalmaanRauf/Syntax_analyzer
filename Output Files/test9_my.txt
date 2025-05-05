@@ -2,17 +2,18 @@ Token           Lexeme
 -----------------------------------
 Token: separator       Lexeme: $$              Line: 1
 	line 1: <Rat25S> -> $$ <OptFunctionDefinitions> $$ <OptDeclarationList> $$ <StatementList> $$
-	line 1: <OptFunctionDefinitions> -> epsilon
+	line 1: <OptFunctionDefinitions> -> ε
 [syntax-error] line 1: at token 'integer' (keyword) — expected separator $$
 Token: keyword         Lexeme: integer         Line: 1
-	line 2: <OptDeclarationList> -> epsilon
+	line 2: <OptDeclarationList> -> ε
 [syntax-error] line 2: at token 'a' (identifier) — expected separator $$
 Token: identifier      Lexeme: a               Line: 2
-	line 2: <StatementList> -> <Statement> [<StatementList>]
+	line 2: <StatementList> -> <Statement> <StatementListPrime>
 [syntax-error] line 2: at token ',' (separator) — invalid statement start
 Token: separator       Lexeme: ,               Line: 2
+	line 2: <StatementListPrime> -> <Statement> <StatementListPrime>
 	line 2: <Statement> -> <Assign>
-	line 2: <Assign> -> id = <Expression> ;
+	line 2: <Assign> -> IDENTIFIER = <Expression> ;
 Token: identifier      Lexeme: b               Line: 2
 [syntax-error] line 2: at token '/' (operator) — expected operator =
 Token: operator        Lexeme: /               Line: 2
@@ -21,12 +22,13 @@ Token: operator        Lexeme: /               Line: 2
 	line 2: <Factor> -> <Primary>
 [syntax-error] line 2: at token '/' (operator) — invalid primary
 Token: operator        Lexeme: /               Line: 2
-	line 2: <TermPrime> -> epsilon
-	line 2: <ExpressionPrime> -> epsilon
+	line 2: <TermPrime> -> ε
+	line 2: <ExpressionPrime> -> ε
 [syntax-error] line 2: at token '←' (unknown) — expected separator ;
 Token: unknown         Lexeme: ←               Line: 2
+	line 2: <StatementListPrime> -> <Statement> <StatementListPrime>
 	line 2: <Statement> -> <Assign>
-	line 2: <Assign> -> id = <Expression> ;
+	line 2: <Assign> -> IDENTIFIER = <Expression> ;
 Token: identifier      Lexeme: missing         Line: 2
 [syntax-error] line 2: at token '‘' (unknown) — expected operator =
 Token: unknown         Lexeme: ‘               Line: 2
@@ -35,34 +37,37 @@ Token: unknown         Lexeme: ‘               Line: 2
 	line 2: <Factor> -> <Primary>
 [syntax-error] line 2: at token ';' (separator) — invalid primary
 Token: separator       Lexeme: ;               Line: 2
-	line 2: <TermPrime> -> epsilon
-	line 2: <ExpressionPrime> -> epsilon
+	line 2: <TermPrime> -> ε
+	line 2: <ExpressionPrime> -> ε
 [syntax-error] line 2: at token '’' (unknown) — expected separator ;
 Token: unknown         Lexeme: ’               Line: 2
+	line 2: <StatementListPrime> -> <Statement> <StatementListPrime>
 	line 2: <Statement> -> <Assign>
-	line 2: <Assign> -> id = <Expression> ;
+	line 2: <Assign> -> IDENTIFIER = <Expression> ;
 Token: identifier      Lexeme: a               Line: 2
 Token: operator        Lexeme: =               Line: 3
 	line 3: <Expression> -> <Term> <ExpressionPrime>
 	line 3: <Term> -> <Factor> <TermPrime>
 	line 3: <Factor> -> <Primary>
-	line 3: <Primary> -> integer|real
+	line 3: <Primary> -> INTEGER
 Token: integer         Lexeme: 1               Line: 3
-	line 3: <TermPrime> -> epsilon
-	line 3: <ExpressionPrime> -> epsilon
+	line 3: <TermPrime> -> ε
+	line 3: <ExpressionPrime> -> ε
 Token: separator       Lexeme: ;               Line: 3
+	line 3: <StatementListPrime> -> <Statement> <StatementListPrime>
 	line 3: <Statement> -> <Assign>
-	line 3: <Assign> -> id = <Expression> ;
+	line 3: <Assign> -> IDENTIFIER = <Expression> ;
 Token: identifier      Lexeme: b               Line: 3
 Token: operator        Lexeme: =               Line: 4
 	line 4: <Expression> -> <Term> <ExpressionPrime>
 	line 4: <Term> -> <Factor> <TermPrime>
 	line 4: <Factor> -> <Primary>
-	line 4: <Primary> -> integer|real
+	line 4: <Primary> -> INTEGER
 Token: integer         Lexeme: 2               Line: 4
-	line 4: <TermPrime> -> epsilon
-	line 4: <ExpressionPrime> -> epsilon
+	line 4: <TermPrime> -> ε
+	line 4: <ExpressionPrime> -> ε
 Token: separator       Lexeme: ;               Line: 4
+	line 4: <StatementListPrime> -> <Statement> <StatementListPrime>
 	line 4: <Statement> -> <Print>
 	line 4: <Print> -> print ( <Expression> ) ;
 Token: keyword         Lexeme: print           Line: 4
@@ -70,12 +75,13 @@ Token: separator       Lexeme: (               Line: 5
 	line 5: <Expression> -> <Term> <ExpressionPrime>
 	line 5: <Term> -> <Factor> <TermPrime>
 	line 5: <Factor> -> <Primary>
-	line 5: <Primary> -> id
+	line 5: <Primary> -> IDENTIFIER
 Token: identifier      Lexeme: a               Line: 5
-	line 5: <TermPrime> -> epsilon
-	line 5: <ExpressionPrime> -> epsilon
+	line 5: <TermPrime> -> ε
+	line 5: <ExpressionPrime> -> ε
 Token: separator       Lexeme: )               Line: 5
 Token: separator       Lexeme: ;               Line: 5
+	line 5: <StatementListPrime> -> ε
 Token: separator       Lexeme: $$              Line: 5
 [syntax-error] line 6: at token '$$' (separator) — expected eof
 Token: separator       Lexeme: $$              Line: 6

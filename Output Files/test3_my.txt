@@ -2,78 +2,83 @@ Token           Lexeme
 -----------------------------------
 Token: separator       Lexeme: $$              Line: 1
 	line 1: <Rat25S> -> $$ <OptFunctionDefinitions> $$ <OptDeclarationList> $$ <StatementList> $$
-	line 1: <OptFunctionDefinitions> -> epsilon
+	line 1: <OptFunctionDefinitions> -> ε
 Token: separator       Lexeme: $$              Line: 1
 	line 2: <OptDeclarationList> -> <DeclarationList>
-	line 2: <DeclarationList> -> <Declaration> ; [<DeclarationList>]
+	line 2: <DeclarationList> -> <Declaration> ; <DeclarationListPrime>
 	line 2: <Declaration> -> <Qualifier> <IDs>
 	line 2: <Qualifier> -> integer | boolean | real
 Token: keyword         Lexeme: integer         Line: 2
-	line 3: <IDs> -> id [ , <IDs> ]
+	line 3: <IDs> -> IDENTIFIER <IDsPrime>
 Token: identifier      Lexeme: a               Line: 3
+	line 3: <IDsPrime> -> , IDENTIFIER <IDsPrime>
 Token: separator       Lexeme: ,               Line: 3
-	line 3: <IDs> -> id [ , <IDs> ]
 Token: identifier      Lexeme: b               Line: 3
 Token: separator       Lexeme: ;               Line: 3
+	line 3: <DeclarationListPrime> -> ε
 Token: separator       Lexeme: $$              Line: 3
-	line 4: <StatementList> -> <Statement> [<StatementList>]
+	line 4: <StatementList> -> <Statement> <StatementListPrime>
 	line 4: <Statement> -> <Assign>
-	line 4: <Assign> -> id = <Expression> ;
+	line 4: <Assign> -> IDENTIFIER = <Expression> ;
 Token: identifier      Lexeme: a               Line: 4
 Token: operator        Lexeme: =               Line: 5
 	line 5: <Expression> -> <Term> <ExpressionPrime>
 	line 5: <Term> -> <Factor> <TermPrime>
 	line 5: <Factor> -> <Primary>
-	line 5: <Primary> -> id
+	line 5: <Primary> -> IDENTIFIER
 Token: identifier      Lexeme: b               Line: 5
-	line 5: <TermPrime> -> epsilon
-	line 5: <ExpressionPrime> -> epsilon
+	line 5: <TermPrime> -> ε
+	line 5: <ExpressionPrime> -> ε
 Token: separator       Lexeme: ;               Line: 5
+	line 5: <StatementListPrime> -> <Statement> <StatementListPrime>
 	line 5: <Statement> -> <If>
-	line 5: <If> -> if ( <Condition> ) <Statement> [else <Statement>] endif
+	line 5: <If> -> if ( <Condition> ) <Statement> <IfPrime>
 Token: keyword         Lexeme: if              Line: 5
 Token: separator       Lexeme: (               Line: 6
 	line 6: <Condition> -> <Expression> <Relop> <Expression>
 	line 6: <Expression> -> <Term> <ExpressionPrime>
 	line 6: <Term> -> <Factor> <TermPrime>
 	line 6: <Factor> -> <Primary>
-	line 6: <Primary> -> id
+	line 6: <Primary> -> IDENTIFIER
 Token: identifier      Lexeme: a               Line: 6
-	line 6: <TermPrime> -> epsilon
-	line 6: <ExpressionPrime> -> epsilon
+	line 6: <TermPrime> -> ε
+	line 6: <ExpressionPrime> -> ε
 	line 6: <Relop> -> == | != | > | < | <= | =>
 Token: operator        Lexeme: =>              Line: 6
 	line 6: <Expression> -> <Term> <ExpressionPrime>
 	line 6: <Term> -> <Factor> <TermPrime>
 	line 6: <Factor> -> <Primary>
-	line 6: <Primary> -> id
+	line 6: <Primary> -> IDENTIFIER
 Token: identifier      Lexeme: b               Line: 6
-	line 6: <TermPrime> -> epsilon
-	line 6: <ExpressionPrime> -> epsilon
+	line 6: <TermPrime> -> ε
+	line 6: <ExpressionPrime> -> ε
 Token: separator       Lexeme: )               Line: 6
 	line 6: <Statement> -> <Compound>
 	line 6: <Compound> -> { <StatementList> }
 Token: separator       Lexeme: {               Line: 6
-	line 7: <StatementList> -> <Statement> [<StatementList>]
+	line 7: <StatementList> -> <Statement> <StatementListPrime>
 	line 7: <Statement> -> <Assign>
-	line 7: <Assign> -> id = <Expression> ;
+	line 7: <Assign> -> IDENTIFIER = <Expression> ;
 Token: identifier      Lexeme: a               Line: 7
 Token: operator        Lexeme: =               Line: 8
 	line 8: <Expression> -> <Term> <ExpressionPrime>
 	line 8: <Term> -> <Factor> <TermPrime>
 	line 8: <Factor> -> <Primary>
-	line 8: <Primary> -> id
+	line 8: <Primary> -> IDENTIFIER
 Token: identifier      Lexeme: a               Line: 8
-	line 8: <TermPrime> -> epsilon
-	line 8: <ExpressionPrime> -> (+|-) <Term> <ExpressionPrime>
+	line 8: <TermPrime> -> ε
+	line 8: <ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime>
 Token: operator        Lexeme: +               Line: 8
 	line 8: <Term> -> <Factor> <TermPrime>
 	line 8: <Factor> -> <Primary>
-	line 8: <Primary> -> integer|real
+	line 8: <Primary> -> INTEGER
 Token: integer         Lexeme: 1               Line: 8
-	line 8: <TermPrime> -> epsilon
-	line 8: <ExpressionPrime> -> epsilon
+	line 8: <TermPrime> -> ε
+	line 8: <ExpressionPrime> -> ε
 Token: separator       Lexeme: ;               Line: 8
+	line 8: <StatementListPrime> -> ε
 Token: separator       Lexeme: }               Line: 8
+	line 9: <IfPrime> -> endif
 Token: keyword         Lexeme: endif           Line: 9
+	line 10: <StatementListPrime> -> ε
 Token: separator       Lexeme: $$              Line: 10
