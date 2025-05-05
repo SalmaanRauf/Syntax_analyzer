@@ -27,16 +27,20 @@ def advance() -> None:
     the expected grammar symbol.
     """
     global pos
-    # Return early if we're already at EOF to prevent multiple EOF prints
-    if current().kind == "eof":
-        pos += 1
-        return
-        
+    
     # print token / lexeme BEFORE advancing, per spec
-    if OUTFILE:
+    # Only print if this is not an EOF token
+    if OUTFILE and current().kind != "eof":
         curr_token = current()
         OUTFILE.write(f"Token: {curr_token.kind:15s} Lexeme: {curr_token.lexeme:15s} Line: {curr_token.line_number}\n")
+    
+    # AFTER printing the token info, then advance the position
     pos += 1
+    
+    # Return early if we've moved to EOF to prevent multiple EOF prints
+    # Note: This check happens AFTER advancing pos and AFTER printing the token
+    if pos >= len(tokens):
+        return
 
 def expect(kind: str, lexeme: Optional[str] = None) -> None:
     tok = current()
@@ -70,14 +74,21 @@ def prod(rule: str) -> None:
 
 # R1  <Rat25S> ::= $$ <Opt Function Definitions> $$ <Opt Declaration List> $$ <Statement List> $$
 def Rat25S() -> None:
+    # First consume the $$ token - this will print the token
     expect("separator", "$$")
+    
+    # Then print the production rule
     prod("<Rat25S> -> $$ <OptFunctionDefinitions> $$ <OptDeclarationList> $$ <StatementList> $$")
+    
+    # Continue with the rest of the parsing
     OptFunctionDefinitions()
     expect("separator", "$$")
     OptDeclarationList()
     expect("separator", "$$")
     StatementList()
     expect("separator", "$$")
+    
+    # After consuming the final $$, check for EOF
     expect("eof")   # must reach end cleanly
 
 # R2
@@ -86,18 +97,25 @@ def OptFunctionDefinitions() -> None:
         prod("<OptFunctionDefinitions> -> <FunctionDefinitions>")
         FunctionDefinitions()
     else:
-        prod("<OptFunctionDefinitions> -> epsilon")
+        prod("<OptFunctionDefinitions> -> ε")
 
 # R3
 def FunctionDefinitions() -> None:
-    prod("<FunctionDefinitions> -> <Function> [<FunctionDefinitions>]")
+    prod("<FunctionDefinitions> -> <Function> <FunctionDefinitionsPrime>")
     Function()
     if current().lexeme == "function":
+        FunctionDefinitionsPrime()
+    
+def FunctionDefinitionsPrime() -> None:
+    if current().lexeme == "function":
+        prod("<FunctionDefinitionsPrime> -> <FunctionDefinitions>")
         FunctionDefinitions()
+    else:
+        prod("<FunctionDefinitionsPrime> -> ε")
 
 # R4
 def Function() -> None:
-    prod("<Function> -> function id ( <OptParameterList> ) <OptDeclarationList> <Body>")
+    prod("<Function> -> function IDENTIFIER ( <OptParameterList> ) <OptDeclarationList> <Body>")
     expect("keyword", "function")
     expect("identifier")
     expect("separator", "(")
@@ -112,14 +130,23 @@ def OptParameterList() -> None:
         prod("<OptParameterList> -> <ParameterList>")
         ParameterList()
     else:
-        prod("<OptParameterList> -> epsilon")
+        prod("<OptParameterList> -> ε")
 
 def ParameterList() -> None:
-    prod("<ParameterList> -> <Parameter> [ , <ParameterList> ]")
+    prod("<ParameterList> -> <Parameter> <ParameterListPrime>")
     Parameter()
     if current().lexeme == ",":
+        ParameterListPrime()
+    
+def ParameterListPrime() -> None:
+    if current().lexeme == ",":
+        prod("<ParameterListPrime> -> , <Parameter> <ParameterListPrime>")
         expect("separator", ",")
-        ParameterList()
+        Parameter()
+        if current().lexeme == ",":
+            ParameterListPrime()
+    else:
+        prod("<ParameterListPrime> -> ε")
 
 def Parameter() -> None:
     prod("<Parameter> -> <IDs> <Qualifier>")
@@ -146,14 +173,21 @@ def OptDeclarationList() -> None:
         prod("<OptDeclarationList> -> <DeclarationList>")
         DeclarationList()
     else:
-        prod("<OptDeclarationList> -> epsilon")
+        prod("<OptDeclarationList> -> ε")
 
 def DeclarationList() -> None:
-    prod("<DeclarationList> -> <Declaration> ; [<DeclarationList>]")
+    prod("<DeclarationList> -> <Declaration> ; <DeclarationListPrime>")
     Declaration()
     expect("separator", ";")
     if current().lexeme in {"integer", "boolean", "real"}:
+        DeclarationListPrime()
+        
+def DeclarationListPrime() -> None:
+    if current().lexeme in {"integer", "boolean", "real"}:
+        prod("<DeclarationListPrime> -> <DeclarationList>")
         DeclarationList()
+    else:
+        prod("<DeclarationListPrime> -> ε")
 
 def Declaration() -> None:
     prod("<Declaration> -> <Qualifier> <IDs>")
@@ -161,33 +195,51 @@ def Declaration() -> None:
     IDs()
 
 def IDs() -> None:
-    prod("<IDs> -> id [ , <IDs> ]")
+    prod("<IDs> -> IDENTIFIER <IDsPrime>")
     expect("identifier")
     if current().lexeme == ",":
+        IDsPrime()
+        
+def IDsPrime() -> None:
+    if current().lexeme == ",":
+        prod("<IDsPrime> -> , IDENTIFIER <IDsPrime>")
         expect("separator", ",")
-        IDs()
+        expect("identifier")
+        if current().lexeme == ",":
+            IDsPrime()
+    else:
+        prod("<IDsPrime> -> ε")
 
 # R14, R15
 def StatementList() -> None:
-    prod("<StatementList> -> <Statement> [<StatementList>]")
+    # Check if we're at a token that can't start a statement (including the final $$)
+    tok = current()
+    if ((tok.kind == "separator" and tok.lexeme in {"}", "$$"}) or 
+        tok.kind == "eof"):
+        # Empty statement list
+        prod("<StatementList> -> ε")
+        return
+        
+    prod("<StatementList> -> <Statement> <StatementListPrime>")
     Statement()
+    
+    # Check for more statements
     starters = {"separator": "{", "identifier": None, "keyword": {
         "if","while","return","scan","print"}}
-    while True:
-        tok = current()
-        # Explicitly check for '}' which terminates a statement list in a compound statement
-        if tok.kind == "separator" and tok.lexeme == "}":
-            break
-        # Standard statement starters
-        if tok.kind == "separator" and tok.lexeme == "{":
-            Statement()
-        elif tok.kind == "identifier":
-            Statement()
-        elif tok.kind == "keyword" and tok.lexeme in starters["keyword"]:
-            Statement()
-        else:
-            # Other tokens are not statement starters
-            break
+    
+    tok = current()
+    # Explicitly check for tokens that can't start a statement
+    if ((tok.kind == "separator" and tok.lexeme in {"}", "$$"}) or 
+        tok.kind == "eof"):
+        prod("<StatementListPrime> -> ε")
+        return
+        
+    # Standard statement starters
+    if ((tok.kind == "separator" and tok.lexeme == "{") or
+        tok.kind == "identifier" or
+        (tok.kind == "keyword" and tok.lexeme in starters["keyword"])):
+        prod("<StatementListPrime> -> <StatementList>")
+        StatementList()
 
 def Statement() -> None:
     tok = current()
@@ -227,7 +279,7 @@ def Compound() -> None:
 
 # R17
 def Assign() -> None:
-    prod("<Assign> -> id = <Expression> ;")
+    prod("<Assign> -> IDENTIFIER = <Expression> ;")
     expect("identifier")
     expect("operator", "=")
     Expression()
@@ -235,23 +287,37 @@ def Assign() -> None:
 
 # R18
 def If() -> None:
-    prod("<If> -> if ( <Condition> ) <Statement> [else <Statement>] endif")
+    prod("<If> -> if ( <Condition> ) <Statement> <IfPrime>")
     expect("keyword", "if")
     expect("separator", "(")
     Condition()
     expect("separator", ")")
     Statement()
     if current().lexeme == "else":
-        expect("keyword", "else")
-        Statement()
+        IfPrime()
+    else:
+        prod("<IfPrime> -> endif")
+        expect("keyword", "endif")
+        
+def IfPrime() -> None:
+    prod("<IfPrime> -> else <Statement> endif")
+    expect("keyword", "else")
+    Statement()
     expect("keyword", "endif")
 
 # R19
 def Return() -> None:
-    prod("<Return> -> return ; | return <Expression> ;")
+    prod("<Return> -> return <ReturnPrime>")
     expect("keyword", "return")
     if current().lexeme != ";":
-        Expression()
+        ReturnPrime()
+    else:
+        prod("<ReturnPrime> -> ;")
+        expect("separator", ";")
+        
+def ReturnPrime() -> None:
+    prod("<ReturnPrime> -> <Expression> ;")
+    Expression()
     expect("separator", ";")
 
 # R21 (note duplicated number in spec for Print/Scan)
@@ -305,12 +371,12 @@ def Expression() -> None:
 
 def ExpressionPrime() -> None:
     if current().kind == "operator" and current().lexeme in {"+","-"}:
-        prod("<ExpressionPrime> -> (+|-) <Term> <ExpressionPrime>")
+        prod("<ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime>")
         advance()
         Term()
         ExpressionPrime()
     else:
-        prod("<ExpressionPrime> -> epsilon")
+        prod("<ExpressionPrime> -> ε")
 
 def Term() -> None:
     prod("<Term> -> <Factor> <TermPrime>")
@@ -319,12 +385,12 @@ def Term() -> None:
 
 def TermPrime() -> None:
     if current().kind == "operator" and current().lexeme in {"*","/"}:
-        prod("<TermPrime> -> (*|/) <Factor> <TermPrime>")
+        prod("<TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime>")
         advance()
         Factor()
         TermPrime()
     else:
-        prod("<TermPrime> -> epsilon")
+        prod("<TermPrime> -> ε")
 
 def Factor() -> None:
     if current().lexeme == "-":
@@ -340,19 +406,22 @@ def Primary() -> None:
     tok = current()
     if tok.kind == "identifier":
         if tokens[pos+1].lexeme == "(":           # function call
-            prod("<Primary> -> id ( <IDs> )")
+            prod("<Primary> -> IDENTIFIER ( <IDs> )")
             expect("identifier")
             expect("separator", "(")
             IDs()
             expect("separator", ")")
         else:
-            prod("<Primary> -> id")
+            prod("<Primary> -> IDENTIFIER")
             expect("identifier")
     elif tok.kind in {"integer","real"}:
-        prod("<Primary> -> integer|real")
+        if tok.kind == "integer":
+            prod("<Primary> -> INTEGER")
+        else:
+            prod("<Primary> -> REAL")
         advance()
     elif tok.kind == "keyword" and tok.lexeme in {"true","false"}:
-        prod("<Primary> -> true|false")
+        prod("<Primary> -> true | false")
         advance()
     elif tok.kind == "separator" and tok.lexeme == "(":
         prod("<Primary> -> ( <Expression> )")
@@ -368,10 +437,20 @@ def parse(src_text: str, outfile_name: str = "sa_output.txt") -> None:
     tokens = lexer.tokenize(src_text)
     pos = 0
     error_count = 0  # Reset error count
-    with open(outfile_name, "w") as OUTFILE:
+    
+    # Open the output file for the entire parsing process
+    with open(outfile_name, "w") as out_file:
+        global OUTFILE
+        OUTFILE = out_file
         OUTFILE.write(f"{'Token':15s} {'Lexeme':15s}\n")
         OUTFILE.write("-"*35 + "\n")
+        
+        # Parse the entire program
         Rat25S()
+        
+        # Make sure OUTFILE is properly closed
+        OUTFILE.flush()
+    
     if error_count > 0:
         print(f"Parsing completed with {error_count} errors – output in {outfile_name}")
     else:
